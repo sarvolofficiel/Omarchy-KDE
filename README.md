@@ -1,79 +1,196 @@
-# Omarchy
+# Omarchy KDE Edition — Test VM QEMU
 
-Omarchy is a beautiful, fun & agentic Linux distribution by DHH.
+Configuration prête à l'emploi pour tester Omarchy KDE Edition sous QEMU.
 
-Read more at [omarchy.org](https://omarchy.org).
+## Description
 
-## The Omarchy Manual
+Ce répertoire contient tout ce qu'il faut pour démarrer une VM QEMU avec Omarchy KDE Edition :
+- KDE Plasma Wayland préconfiguré
+- SDDM comme display manager
+- Thème Breeze Dark par défaut
+- Autres paquets Omarchy (outils, apps)
 
-The manual lives in [`manual/`](manual/), which is its authoritative source. It's
-mirrored to [learn.omacom.io](https://learn.omacom.io/2/the-omarchy-manual), where
-its screenshots are also hosted.
+## Prérequis
 
-- [Welcome to Omarchy!](manual/01-welcome-to-omarchy.md)
+### Sur Arch Linux / Manjaro
+```bash
+sudo pacman -S qemu-base cloud-init guestfish virt-utils
+```
 
-**The Basics**
+### Sur Debian/Ubuntu
+```bash
+sudo apt install qemu-system-x86 cloud-image-utils libguestfs-tools
+```
 
-- [Getting Started](manual/02-getting-started.md)
-- [Coming From Mac or Windows](manual/03-coming-from-mac-or-windows.md)
-- [Navigation](manual/04-navigation.md)
-- [The top bar](manual/05-the-top-bar.md)
-- [Themes](manual/06-themes.md)
-- [Hotkeys](manual/07-hotkeys.md)
-- [Unified Clipboard & History](manual/08-unified-clipboard-history.md)
-- [Reminders](manual/09-reminders.md)
-- [Notices](manual/10-notices.md)
-- [Text Extraction & Dictation](manual/11-text-extraction-dictation.md)
-- [Screenshots & Recording](manual/12-screenshots-recording.md)
-- [Toggles, idle & screensaver](manual/13-toggles-idle-screensaver.md)
-- [Omarchy CLI](manual/14-omarchy-cli.md)
+### Sur Fedora
+```bash
+sudo dnf install qemu-kvm cloud-utils guestfs-tools
+```
 
-**The Applications**
+## Méthode 1 — Test rapide avec cloud-init (recommandé)
 
-- [Terminal](manual/15-terminal.md)
-- [Neovim](manual/16-neovim.md)
-- [AI](manual/17-ai.md)
-- [Development Tools](manual/18-development-tools.md)
-- [Shell Tools](manual/19-shell-tools.md)
-- [Shell Functions](manual/20-shell-functions.md)
-- [TUIs](manual/21-tuis.md)
-- [GUIs](manual/22-guis.md)
-- [Browsers](manual/23-browsers.md)
-- [Commercial apps/services](manual/24-commercial-apps-services.md)
-- [Web Apps](manual/25-web-apps.md)
-- [Gaming](manual/26-gaming.md)
-- [Filling out PDFs](manual/27-filling-out-pdfs.md)
-- [Windows VM](manual/28-windows-vm.md)
-- [Other Packages](manual/29-other-packages.md)
+Cette méthode utilise une image Arch Cloud officielle + cloud-init pour installer KDE au premier boot.
 
-**Configuration**
+### Étape 1 : Télécharger l'image Arch Cloud
 
-- [Updates](manual/30-updates.md)
-- [Dotfiles](manual/31-dotfiles.md)
-- [Shell plugins](manual/32-shell-plugins.md)
-- [Monitors](manual/33-monitors.md)
-- [Keyboard, Mouse, Trackpad](manual/34-keyboard-mouse-trackpad.md)
-- [Networking](manual/35-networking.md)
-- [System sleep](manual/36-system-sleep.md)
-- [Hardware authentication](manual/37-hardware-authentication.md)
-- [Fonts](manual/38-fonts.md)
-- [Backgrounds](manual/39-backgrounds.md)
-- [Prompt](manual/40-prompt.md)
-- [Branding](manual/41-branding.md)
-- [Common tweaks](manual/42-common-tweaks.md)
-- [Making your own theme](manual/43-making-your-own-theme.md)
+```bash
+# Créer le dossier de sortie
+mkdir -p /tmp/omarchy-kde-test/output
 
-**The Rest**
+# Télécharger l'image Arch Cloud (remplacez la date par la dernière disponible)
+wget https://mirror.pkgbuild.com/archlinux/iso/2024.01.01/archlinux-2024.01.01-x86_64-cloud.img.gz -P /tmp/omarchy-kde-test/output/
 
-- [Mac support](manual/44-mac-support.md)
-- [Troubleshooting](manual/45-troubleshooting.md)
-- [FAQ](manual/46-faq.md)
-- [System snapshots](manual/47-system-snapshots.md)
-- [Security](manual/48-security.md)
-- [Omarchy on...](manual/49-omarchy-on.md)
-- [Dual Boot Install](manual/50-dual-boot-install.md)
-- [Unattended Installs](manual/51-unattended-installs.md)
+# Décompresser
+gunzip /tmp/omarchy-kde-test/output/archlinux-*-x86_64-cloud.img.gz
 
-## License
+# Renommer pour simplifier
+mv /tmp/omarchy-kde-test/output/archlinux-*-x86_64-cloud.img \
+   /tmp/omarchy-kde-test/output/base-arch.raw
+```
 
-Omarchy is released under the [MIT License](https://opensource.org/licenses/MIT).
+### Étape 2 : Lancer la VM avec cloud-init
+
+```bash
+cd /tmp/omarchy-kde-test
+
+# Générer l'ISO cloud-init
+cloud-localds output/cloud-init.iso cloud-init/omarchy-kde.cfg
+
+# Démarrer QEMU
+qemu-system-x86_64 \
+    -enable-kvm \
+    -m 4096 \
+    -smp 4 \
+    -cpu host \
+    -machine type=q35,accel=kvm \
+    -drive file=output/base-arch.raw,format=raw,if=virtio \
+    -drive file=output/cloud-init.iso,format=raw,media=cdrom \
+    -netdev user,id=net0,hostfwd=tcp::2222-:22 \
+    -device virtio-net-pci,netdev=net0,mac=52:54:00:12:34:56 \
+    -display gtk,gl=on \
+    -device virtio-gpu-pci \
+    -soundhw ac97
+```
+
+### Étape 3 : Connexion SSH (après boot)
+
+```bash
+# La VM démarre avec cloud-init qui configure tout
+# Une fois KDE prêt, connectez-vous en SSH :
+ssh -p 2222 omarchy@localhost
+
+# Mot de passe par défaut : omarchy (à changer !)
+```
+
+## Méthode 2 — Script automatisé
+
+Le script `scripts/build-qemu.sh` automatise tout le processus.
+
+```bash
+chmod +x scripts/build-qemu.sh
+./scripts/build-qemu.sh create   # Créer l'image
+./scripts/build-qemu.sh run      # Démarrer la VM
+```
+
+## Configuration cloud-init
+
+Le fichier `cloud-init/omarchy-kde.cfg` applique automatiquement :
+
+- **Paquets KDE** : plasma-desktop, sddm, konsole, dolphin, ark, plasma-nm, plasma-pa, kate, kscreen, spectacle, xdg-desktop-portal-kde
+- **Display Manager** : SDDM activé
+- **Services** : NetworkManager, Bluetooth, systemd-oomd
+- **Thème** : Breeze Dark (couleurs, icônes, curseurs, polices)
+- **Locale** : fr_FR.UTF-8
+- **Utilisateur** : omarchy (mot de passe à modifier au premier login)
+
+## Ressources Qemu
+
+| Ressource | Valeur | Notes |
+|-----------|--------|-------|
+| RAM | 4096 Mo | 4 Go — suffisant pour KDE Plasma |
+| CPU | 4 cœurs | host CPU passthrough |
+| Disque | 20 Go | QCOW2 (dynamique) |
+| Affichage | GTK + OpenGL | Accélération 3D |
+| Son | AC97 | Audio de base |
+| Réseau | User/NAT | Port 2222 → 22 (SSH) |
+
+## Personnalisation
+
+### Modifier les ressources
+
+Éditez les variables dans `scripts/build-qemu.sh` :
+```bash
+VM_RAM="8192"          # 8 Go RAM
+VM_CPUS="8"            # 8 cœurs
+VM_DISK_SIZE="40G"     # 40 Go disque
+```
+
+### Modifier les paquets cloud-init
+
+Éditez `cloud-init/omarchy-kde.cfg` :
+```yaml
+packages:
+  - <ajouter-ou-retirer-des-paquets>
+```
+
+### Ajouter un pont réseau (accès réseau complet)
+
+Remplacez le `-netdev user` par :
+```bash
+-netdev bridge,id=net0,br=virbr0 \
+-device virtio-net-pci,netdev=net0,mac=52:54:00:12:34:56
+```
+
+## Dépannage
+
+### VM ne démarre pas
+```bash
+# Vérifier que KVM est disponible
+ls -l /dev/kvm
+# Si absent : sudo modprobe kvm_intel (ou kvm_amd)
+
+# Vérifier les droits
+sudo usermod -aG kvm \$USER
+# Puis déconnecter/reconnecter
+```
+
+### Pas d'affichage graphique
+```bash
+# Essayer avec VNC à la place de GTK
+qemu-system-x86_64 ... -vnc :0 -display none
+# Puis connecter un client VNC sur localhost:5900
+```
+
+### Cloud-init ne s'exécute pas
+```bash
+# Vérifier que l'ISO est bien montée
+qemu-system-x86_64 ... -drive file=output/cloud-init.iso,format=raw,media=cdrom
+
+# Vérifier les logs cloud-init dans la VM
+ssh -p 2222 omarchy@localhost
+sudo journalctl -u cloud-init
+```
+
+## Accès direct aux fichiers
+
+Après le premier boot avec cloud-init, vous pouvez accéder à :
+- `/home/omarchy/.config/kdeglobals` — Configuration KDE
+- `/etc/sddm.conf.d/omarchy.conf` — Configuration SDDM
+- `/usr/share/wayland-sessions/omarchy-kde.desktop` — Session Wayland
+
+## Alternatives sans cloud-init
+
+Si vous ne voulez pas utiliser cloud-init, vous pouvez :
+1. Créer une image Arch Linux classique avec `archinstall`
+2. Installer KDE Plasma manuellement
+3. Appliquer les configurations manuellement
+
+Cette approche est plus longue mais donne un contrôle total.
+
+---
+
+## Notes
+
+- L'image Arch Cloud officielle est ~200 Mo (vide) et s'installe via cloud-init
+- La méthode cloud-init est la plus rapide pour tester KDE Plasma
+- Pour une ISO complète bootable, voir `../archiso/` (nécessite archiso + environnement de build)
