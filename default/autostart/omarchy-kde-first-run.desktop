@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Omarchy KDE First Run Configuration
+Comment=Applique la configuration KDE par défaut (Breeze Dark, polices, etc.) au premier lancement
+Exec=/usr/share/omarchy/user/kde-first-run.sh
+Hidden=false
+X-GNOME-Autostart-enabled=true
+X-KDE-autostart-after=panel
+OnlyShowIn=KDE;
+NoDisplay=true

@@ -1,0 +1,34 @@
+# Omarchy KDE Edition — paquets Plasma supplémentaires
+# À ajouter au Pacstrap après omarchy-base.packages
+#
+# Ces paquets complètent l'environnement KDE Plasma :
+#   - plasma-desktop (bureau + panel + widgets)
+#   - konsole (terminal KDE)
+#   - dolphin (gestionnaire de fichiers)
+#   - ark (archives GUI)
+#   - plasma-nm (gestion réseau Plasma)
+#   - plasma-pa (gestion audio Plasma)
+#   - kate (éditeur de texte)
+#   - kscreen (gestion des écrans)
+#   - spectacle (captures d'écran)
+#   - xdg-desktop-portal-kde (portail bureau KDE)
+#   - plasma-workspace (bibliothèques workspace)
+#
+# Remplace les anciens paquets Hyprland suivants (déjà supprimés
+# d'omarchy-base.packages) :
+#   hyprland, hyprland-guiutils, hyprland-preview-share-picker,
+#   hyprpicker, hyprsunset, grim, slurp, wtype, quickshell,
+#   xdg-desktop-portal-hyprland, foot
+
+plasma-desktop
+sddm
+konsole
+dolphin
+ark
+plasma-nm
+plasma-pa
+kate
+kscreen
+spectacle
+xdg-desktop-portal-kde
+plasma-workspace

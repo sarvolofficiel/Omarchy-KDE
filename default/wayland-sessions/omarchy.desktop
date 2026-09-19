@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Omarchy KDE Plasma (Wayland)
+Comment=Omarchy KDE Plasma Edition — Wayland session
+Exec=plasmawayland.desktop
+TryExec=plasmawayland
+Type=Application
+DesktopNames=Omarchy-KDE-Plasma-Wayland
+Keywords=Omarchy;KDE;Plasma;Wayland
